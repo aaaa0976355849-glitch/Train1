@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#b42318" />
+  <title>日本 700 景點踩點圖鑑</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div>
+      <p class="eyebrow">JAPAN TRAVEL COLLECTION</p>
+      <h1>日本 700 景點踩點圖鑑</h1>
+      <p class="lead">47 都道府縣 · 700 個景點與體驗。把去過的地方勾起來，慢慢把日本填滿。</p>
+    </div>
+    <div class="stamp" aria-hidden="true">旅<br>圖</div>
+  </div>
+</header>
+
+<main>
+  <section class="summary-grid" id="summary"></section>
+
+  <section class="toolbar card">
+    <input id="search" type="search" placeholder="搜尋景點、都道府縣、類型…" />
+    <select id="region"><option value="">全部地區</option></select>
+    <select id="pref"><option value="">全部都道府縣</option></select>
+    <select id="status">
+      <option value="">全部狀態</option>
+      <option>待確認</option><option>想去</option><option>已去</option><option>想再去</option><option>暫不安排</option>
+    </select>
+    <button id="onlyVisited" class="ghost">只看已踩</button>
+  </section>
+
+  <section class="region-progress card">
+    <div class="section-title"><h2>地區完成度</h2><span id="visibleCount"></span></div>
+    <div id="regionProgress" class="progress-list"></div>
+  </section>
+
+  <section class="actions card">
+    <div>
+      <h2>我的紀錄</h2>
+      <p>勾選後會自動儲存在此瀏覽器。本機資料不會上傳到 GitHub。</p>
+    </div>
+    <div class="action-buttons">
+      <button id="exportBtn">匯出備份</button>
+      <label class="button-label">匯入備份<input id="importFile" type="file" accept="application/json" hidden></label>
+      <button id="resetBtn" class="danger ghost">清除本機紀錄</button>
+    </div>
+  </section>
+
+  <section id="cards" class="cards"></section>
+  <div id="empty" class="empty" hidden>找不到符合條件的景點。</div>
+</main>
+
+<footer>資料清單來源：日本 700 景點踩點圖鑑 · 你的勾選紀錄只保存在目前瀏覽器。</footer>
+<script src="app.js"></script>
+</body>
+</html>
