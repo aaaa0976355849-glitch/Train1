@@ -1,0 +1,41 @@
+name: Prepare Kanto fixed photographs
+on:
+  push:
+    branches: [work/kanto-static-photos]
+    paths:
+      - 'tools/collect_kanto.py'
+      - 'tools/photo_source.py'
+      - 'tools/kanto-selections.json'
+      - '.github/workflows/prepare-kanto-photos.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: kanto-photo-preparation
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/work/kanto-static-photos'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare licensed candidates for review
+        run: python3 tools/collect_kanto.py
+      - name: Commit candidates to review branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add japan-checklist/images/kanto japan-checklist/kanto-photos.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Store licensed Kanto photo candidates for review'
+            git push origin HEAD:work/kanto-static-photos
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kanto-photo-review
+          path: |
+            japan-checklist/
+            kanto-preparation-report.json
+          retention-days: 3
