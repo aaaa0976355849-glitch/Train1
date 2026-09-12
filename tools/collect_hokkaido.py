@@ -8,6 +8,8 @@ ROOT = Path('japan-checklist')
 DEST = ROOT / 'images' / 'hokkaido'
 DEST.mkdir(parents=True, exist_ok=True)
 HEADERS = {'User-Agent':'Japan700PhotoPreparation/1.0 (https://github.com/aaaa0976355849-glitch/Train1; personal travel catalogue)'}
+IMAGE_HOSTS = {'upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'}
+HOSTS = IMAGE_HOSTS | {'ja.wikipedia.org','en.wikipedia.org'}
 OVERRIDES = {
  'JP01-09':'Otaru-Tenguyama 20220625.jpg',
  'JP01-15':'Noboribetsu hot spring jigokudani.JPG',
@@ -25,12 +27,14 @@ def text(value):
     p=Plain(); p.feed(str(value or '')); return ' '.join(''.join(p.parts).split())
 def request(url):
     if url.startswith('//'): url='https:'+url
-    if urlparse(url).scheme != 'https' or urlparse(url).hostname not in {'ja.wikipedia.org','en.wikipedia.org','commons.wikimedia.org','upload.wikimedia.org'}:
+    if urlparse(url).scheme != 'https' or urlparse(url).hostname not in HOSTS:
         raise ValueError('Untrusted source: '+url)
     error=None
     for attempt in range(3):
         try:
             with urlopen(Request(url, headers=HEADERS), timeout=25) as r:
+                if urlparse(r.url).scheme != 'https' or urlparse(r.url).hostname not in HOSTS:
+                    raise ValueError('Unexpected redirect host')
                 data=r.read(16000001)
                 if len(data)>16000000: raise ValueError('Image too large')
                 return data
@@ -74,7 +78,7 @@ def photo_info(filename):
         else: raise ValueError('License URL missing')
     src=info.get('thumburl') or info['url']
     if src.startswith('//'): src='https:'+src
-    if urlparse(src).hostname not in {'upload.wikimedia.org','commons.wikimedia.org'}: raise ValueError('Unexpected image host: '+src)
+    if urlparse(src).hostname not in IMAGE_HOSTS: raise ValueError('Unexpected image host: '+src)
     source=info['descriptionurl']
     if urlparse(source).hostname!='commons.wikimedia.org': raise ValueError('Unexpected description host: '+source)
     return {'filename':filename,'downloadUrl':src,'originalUrl':info['url'],'source':source,'author':author,'license':license,'licenseUrl':lu,'description':field('ImageDescription'),'sourceSha1':info.get('sha1',''),'changes':'縮小尺寸；網頁以 4:3 裁切顯示。裁切顯示版本沿用原圖授權。'}
