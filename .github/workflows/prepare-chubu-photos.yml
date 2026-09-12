@@ -4,8 +4,10 @@ on:
     branches: [work/hokuriku-tokai-static-photos]
     paths:
       - 'tools/chubu-selections.json'
+      - 'tools/chubu-overrides.json'
       - 'tools/collect_chubu.py'
       - 'tools/photo_source.py'
+      - 'tools/review_extra_photos.py'
       - '.github/workflows/prepare-chubu-photos.yml'
   workflow_dispatch:
 permissions:
@@ -21,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Collect licensed candidates for visual review
         run: python3 tools/collect_chubu.py
+      - name: Review additional scene alternatives
+        run: python3 tools/review_extra_photos.py
       - name: Save candidates to review branch only
         if: github.ref == 'refs/heads/work/hokuriku-tokai-static-photos'
         run: |
@@ -42,4 +46,6 @@ jobs:
             japan-checklist/tokai-photos.json
             chubu-preparation-report.json
             tools/chubu-selections.json
+            tools/chubu-overrides.json
+            review-extra/
           retention-days: 3

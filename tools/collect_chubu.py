@@ -7,6 +7,8 @@ REGIONS={'北陸信越':('hokuriku',65),'東海・山梨':('tokai',68)}
 def main():
     data=json.loads(gzip.decompress(base64.b64decode(''.join((ROOT/f'data.{i}.txt').read_text() for i in range(1,5)))))
     selections=json.loads(Path('tools/chubu-selections.json').read_text())
+    override=Path('tools/chubu-overrides.json')
+    if override.exists():selections.update(json.loads(override.read_text()))
     targets=[s for s in data if s['region'] in REGIONS]
     assert len(targets)==133 and set(selections)=={s['id'] for s in targets}
     report={}
@@ -30,6 +32,7 @@ def main():
                 item.update({'src':path.relative_to(ROOT).as_posix(),'name':spot['name'],'prefecture':spot['prefecture'],'sha256':hashlib.sha256(blob).hexdigest(),'bytes':len(blob),'selectionHash':signature})
                 for key in ('caption','fit'):
                     if key in sel:item[key]=sel[key]
+                if item.get('fit')=='contain':item['changes']='縮小尺寸；網頁保留照片完整比例。圖片沿用原授權。'
                 manifest[id]=item;print(id,spot['name'],item['filename'],item['license'],flush=True)
             except Exception as e:
                 errors[id]={'name':spot['name'],'error':str(e)};print('MISSING',id,str(e),flush=True)
