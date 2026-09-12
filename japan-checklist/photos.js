@@ -5,11 +5,13 @@ window.JapanPhotos = (() => {
   // Fixed photographs are served locally. Never search for these IDs at runtime.
   const fixedRegion = id => /^JP01-\d{2}$/.test(id) ? 'hokkaido' :
     /^JP0[2-7]-\d{2}$/.test(id) ? 'tohoku' :
-    /^JP(?:0[89]|1[0-4])-\d{2}$/.test(id) ? 'kanto' : '';
+    /^JP(?:0[89]|1[0-4])-\d{2}$/.test(id) ? 'kanto' :
+    /^JP1[5-9]-\d{2}$/.test(id) ? 'hokuriku' :
+    /^JP2[0-4]-\d{2}$/.test(id) ? 'tokai' : '';
   const localPhoto = (id, src) => typeof src === 'string' && !!fixedRegion(id) &&
     new RegExp('^images/' + fixedRegion(id) + '/' + id + '\\.(jpg|png|webp)$').test(src);
   function loadFixed(region) {
-    return fetch(`${region}-photos.json?v=kanto-static-1`, {credentials:'same-origin'})
+    return fetch(`${region}-photos.json?v=chubu-static-1`, {credentials:'same-origin'})
       .then(r => { if (!r.ok) throw new Error('Fixed catalogue unavailable'); return r.json(); })
       .then(data => {
         if (!data || typeof data !== 'object' || Array.isArray(data)) return {};
@@ -23,7 +25,7 @@ window.JapanPhotos = (() => {
         return valid;
       }).catch(() => ({}));
   }
-  const fixedPhotos = {hokkaido: loadFixed('hokkaido'), tohoku: loadFixed('tohoku'), kanto: loadFixed('kanto')};
+  const fixedPhotos = {hokkaido: loadFixed('hokkaido'), tohoku: loadFixed('tohoku'), kanto: loadFixed('kanto'), hokuriku: loadFixed('hokuriku'), tokai: loadFixed('tokai')};
   const aliases = {'大通公園＋札幌電視塔':'大通公園','北海道廳舊本廳舍':'北海道庁旧本庁舎','白色戀人公園':'白い恋人パーク','小樽運河':'小樽運河','函館山':'函館山','美瑛青池':'青い池','富田農場':'ファーム富田','登別地獄谷':'地獄谷 (登別市)','東京晴空塔':'東京スカイツリー','東京迪士尼樂園':'東京ディズニーランド','東京迪士尼海洋':'東京ディズニーシー','伏見稻荷大社':'伏見稲荷大社','沖繩美麗海水族館':'沖縄美ら海水族館'};
   let cache = {}, observer = null, running = 0, queue = [];
   const inFlight = new Map();
