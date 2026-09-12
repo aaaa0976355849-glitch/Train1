@@ -1,0 +1,37 @@
+name: Prepare Tohoku fixed photographs
+on:
+  push:
+    branches: [work/tohoku-static-photos]
+    paths: ['tools/collect_tohoku.py', 'tools/tohoku-selections.json', '.github/workflows/prepare-tohoku-photos.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: tohoku-photo-preparation
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare exact-match licensed candidates
+        run: python3 tools/collect_tohoku.py
+      - name: Save assets to isolated review branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add japan-checklist/images/tohoku japan-checklist/tohoku-photos.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Store licensed Tohoku photo candidates for review'
+            git push origin HEAD:work/tohoku-static-photos
+          fi
+      - name: Upload review bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: tohoku-photo-review
+          path: |
+            japan-checklist/
+            tools/
+            tohoku-preparation-report.json
+          retention-days: 3
