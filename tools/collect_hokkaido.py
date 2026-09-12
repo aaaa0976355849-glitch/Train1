@@ -11,12 +11,17 @@ HEADERS = {'User-Agent':'Japan700PhotoPreparation/1.0 (https://github.com/aaaa09
 IMAGE_HOSTS = {'upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'}
 HOSTS = IMAGE_HOSTS | {'ja.wikipedia.org','en.wikipedia.org'}
 OVERRIDES = {
+ 'JP01-02':'Sapporo Clock Tower 札幌市時計台 06.jpg',
+ 'JP01-06':'City nightscape of Sapporo from Mt. Moiwa 20260703a.jpg',
  'JP01-09':'Otaru-Tenguyama 20220625.jpg',
  'JP01-15':'Noboribetsu hot spring jigokudani.JPG',
+ 'JP01-17':'Hakodate night view (51973442055).jpg',
  'JP01-19':'Hakodate Hachiman-zaka 2024.jpg',
  'JP01-29':'ニングルの秋（Fall of Ninguru） - panoramio.jpg',
- 'JP01-32':'雲海テラス TOMAMU - panoramio (1).jpg',
+ 'JP01-31':'層雲峽 Sounkyo - panoramio.jpg',
+ 'JP01-32':'UNKAI TERRACE.jpg',
  'JP01-39':'Hokkaido-Abashiri Drift Icebreaker Ship Aurora-xl.jpg',
+ 'JP01-40':'The northernmost point of Japan monument in Soya cape.jpg',
  'JP01-42':'Rebun Island (7805402080).jpg',
  'JP01-44':'Jozankei Onsen 01.jpg'
 }
