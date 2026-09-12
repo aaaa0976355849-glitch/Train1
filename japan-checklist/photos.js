@@ -1,130 +1,89 @@
 'use strict';
-// Only request photos near the viewport; never fan out 700 network requests.
+// Every photograph is selected before deployment and served by this site.
+// No third-party image search or image request runs here.
 window.JapanPhotos = (() => {
-  const CACHE_KEY = 'japan700-photo-cache-v3';
-  // Fixed photographs are served locally. Never search for these IDs at runtime.
-  const fixedRegion = id => /^JP01-\d{2}$/.test(id) ? 'hokkaido' :
-    /^JP0[2-7]-\d{2}$/.test(id) ? 'tohoku' :
-    /^JP(?:0[89]|1[0-4])-\d{2}$/.test(id) ? 'kanto' :
-    /^JP1[5-9]-\d{2}$/.test(id) ? 'hokuriku' :
-    /^JP2[0-4]-\d{2}$/.test(id) ? 'tokai' : '';
-  const localPhoto = (id, src) => typeof src === 'string' && !!fixedRegion(id) &&
-    new RegExp('^images/' + fixedRegion(id) + '/' + id + '\\.(jpg|png|webp)$').test(src);
-  function loadFixed(region) {
-    return fetch(`${region}-photos.json?v=chubu-static-1`, {credentials:'same-origin'})
-      .then(r => { if (!r.ok) throw new Error('Fixed catalogue unavailable'); return r.json(); })
-      .then(data => {
-        if (!data || typeof data !== 'object' || Array.isArray(data)) return {};
-        const valid = {};
-        for (const [id, photo] of Object.entries(data)) {
-          if (fixedRegion(id) === region && photo && localPhoto(id, photo.src) &&
-              safeURL(photo.source, 'commons.wikimedia.org') && photo.author && photo.license) {
-            valid[id] = {...photo, fixedId:id};
+  const groups = [[1,'hokkaido'],[7,'tohoku'],[14,'kanto'],[19,'hokuriku'],[24,'tokai'],[30,'kansai'],[35,'chugoku'],[39,'shikoku'],[46,'kyushu'],[47,'okinawa']];
+  const catalogues = new Map();
+  let observer = null, fallbackObserver = null;
+  function regionFor(id) {
+    const match = /^JP(\d{2})-\d{2}$/.exec(id || '');
+    const n = match ? Number(match[1]) : 0;
+    return n > 0 && n <= 47 ? groups.find(([end]) => n <= end)[1] : '';
+  }
+  function localPath(id, path) {
+    return typeof path === 'string' && !!regionFor(id) && new RegExp('^images/' + regionFor(id) + '/' + id + '\\.(jpg|png|webp)$').test(path);
+  }
+  function validSource(value) {
+    try { const u = new URL(value); return u.protocol === 'https:' && u.hostname === 'commons.wikimedia.org'; } catch { return false; }
+  }
+  function load(region) {
+    if (!catalogues.has(region)) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+      const promise = fetch(`${region}-photos.json?v=all-static-1`, {credentials:'same-origin', signal:controller.signal})
+        .then(r => { if (!r.ok) throw new Error('Photo catalogue unavailable'); return r.json(); })
+        .then(data => {
+          if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid photo catalogue');
+          const valid = Object.create(null);
+          for (const [id, photo] of Object.entries(data)) {
+            if (regionFor(id) === region && photo && localPath(id, photo.src) && validSource(photo.source) && typeof photo.author === 'string' && typeof photo.license === 'string') valid[id] = photo;
           }
-        }
-        return valid;
-      }).catch(() => ({}));
-  }
-  const fixedPhotos = {hokkaido: loadFixed('hokkaido'), tohoku: loadFixed('tohoku'), kanto: loadFixed('kanto'), hokuriku: loadFixed('hokuriku'), tokai: loadFixed('tokai')};
-  const aliases = {'大通公園＋札幌電視塔':'大通公園','北海道廳舊本廳舍':'北海道庁旧本庁舎','白色戀人公園':'白い恋人パーク','小樽運河':'小樽運河','函館山':'函館山','美瑛青池':'青い池','富田農場':'ファーム富田','登別地獄谷':'地獄谷 (登別市)','東京晴空塔':'東京スカイツリー','東京迪士尼樂園':'東京ディズニーランド','東京迪士尼海洋':'東京ディズニーシー','伏見稻荷大社':'伏見稲荷大社','沖繩美麗海水族館':'沖縄美ら海水族館'};
-  let cache = {}, observer = null, running = 0, queue = [];
-  const inFlight = new Map();
-  try { const v = JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}'); if (v && typeof v === 'object' && !Array.isArray(v)) cache = v; } catch {}
-  const text = html => new DOMParser().parseFromString(String(html || ''), 'text/html').body.textContent.trim();
-  function safeURL(value, host) {
-    try { const u = new URL(value); return u.protocol === 'https:' && u.hostname === host ? u.href : ''; } catch { return ''; }
-  }
-  async function api(host, params) {
-    const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 7000);
-    try {
-      const url = `https://${host}/w/api.php?` + new URLSearchParams({action:'query',format:'json',formatversion:'2',origin:'*',...params});
-      const r = await fetch(url, {signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer'});
-      if (!r.ok) throw new Error('Photo request failed');
-      const data = await r.json(); if (data.error) throw new Error('Photo API error'); return data;
-    } finally { clearTimeout(timer); }
-  }
-  async function creditFor(filename) {
-    const data = await api('commons.wikimedia.org', {prop:'imageinfo', titles:`File:${filename}`, iiprop:'url|extmetadata', iiurlwidth:'640', iiextmetadatafilter:'Artist|LicenseShortName|LicenseUrl|Attribution'});
-    const info = data.query?.pages?.[0]?.imageinfo?.[0];
-    if (!info) return null;
-    const src = safeURL(info.thumburl || info.url, 'upload.wikimedia.org');
-    const source = safeURL(info.descriptionurl, 'commons.wikimedia.org');
-    const meta = info.extmetadata || {};
-    const license = text(meta.LicenseShortName?.value);
-    const author = text(meta.Attribution?.value || meta.Artist?.value) || 'Wikimedia Commons';
-    if (!src || !source || !/^(CC|Public domain|PDM|GFDL)/i.test(license)) return null;
-    return {src, source, author, license};
-  }
-  async function lookup(spot) {
-    const exact = String(spot.name).trim();
-    const clean = exact.replace(/（[^）]*）|\([^)]*\)/g, '').trim();
-    const base = clean.split(/[＋+／/]/)[0].trim();
-    const variants = [...new Set([exact, clean, base])].filter(Boolean).slice(0,3);
-    for (const lang of ['ja','zh']) {
-      const titles = lang === 'ja' && aliases[exact] ? [aliases[exact]] : variants;
-      const data = await api(`${lang}.wikipedia.org`, {prop:'pageimages|pageprops', titles:titles.join('|'), redirects:'1', converttitles:'1', piprop:'name|thumbnail', pithumbsize:'640', pilicense:'free'});
-      const pages = data.query?.pages || [];
-      for (const page of pages) {
-        if (page.missing || !page.pageimage || page.pageprops?.disambiguation !== undefined) continue;
-        const result = await creditFor(page.pageimage);
-        if (result) return result;
-      }
+          return valid;
+        }).catch(() => Object.create(null)).finally(() => clearTimeout(timer));
+      catalogues.set(region, promise);
     }
-    return null;
-  }
-  function getPhoto(spot) {
-    // A missing fixed file must not silently fall back to an unrelated search result.
-    if (fixedRegion(spot.id)) return fixedPhotos[fixedRegion(spot.id)].then(photos => photos[spot.id] || null);
-    const old = cache[spot.id];
-    if (old && Date.now() - old.at < (old.photo ? 7*86400000 : 600000)) return Promise.resolve(old.photo);
-    if (inFlight.has(spot.id)) return inFlight.get(spot.id);
-    const promise = lookup(spot).catch(() => null).then(photo => {
-      cache[spot.id] = {at:Date.now(),photo};
-      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {}
-      inFlight.delete(spot.id); return photo;
-    });
-    inFlight.set(spot.id, promise); return promise;
+    return catalogues.get(region);
   }
   function show(card, photo) {
     if (!card.isConnected) return;
-    const fallback = card.querySelector('.thumb-fallback'), img = card.querySelector('.thumb'), credit = card.querySelector('.photo-credit');
-    const fixed = photo?.fixedId === card.dataset.id && localPhoto(card.dataset.id, photo.src);
-    const src = fixed ? new URL(photo.src, document.baseURI).href :
-      photo && safeURL(photo.src, 'upload.wikimedia.org');
-    const source = photo && safeURL(photo.source, 'commons.wikimedia.org');
-    const fail = () => { img.hidden = true; credit.hidden = true; fallback.hidden = false; fallback.textContent = '尚無照片／暫時無法載入'; fallback.setAttribute('aria-label', `${card.querySelector('.spot-name').textContent}：尚無照片`); };
-    if (!src || !source) { fail(); return; }
-    img.onload = () => { img.hidden = false; fallback.hidden = true; credit.hidden = false; };
-    img.onerror = fail;
-    credit.href = fixed ? `${fixedRegion(photo.fixedId) === 'hokkaido' ? 'photo-credits.html' : 'photo-credits-' + fixedRegion(photo.fixedId) + '.html'}#${photo.fixedId}` : source;
+    const img = card.querySelector('.thumb'), fallback = card.querySelector('.thumb-fallback'), credit = card.querySelector('.photo-credit');
+    const id = card.dataset.id;
+    const fail = () => {
+      img.hidden = true; credit.hidden = true; fallback.hidden = false;
+      fallback.textContent = '照片載入失敗，請重新整理。';
+      fallback.setAttribute('aria-label', `${card.querySelector('.spot-name').textContent}：照片載入失敗`);
+      card.querySelector('.photo-note')?.remove();
+    };
+    if (!photo || !localPath(id, photo.src)) { fail(); return; }
+    const region = regionFor(id);
+    credit.href = `${region === 'hokkaido' ? 'photo-credits.html' : 'photo-credits-' + region + '.html'}#${id}`;
     credit.textContent = `${photo.author} · ${photo.license}`;
-    credit.title = `${photo.author} · ${photo.license} · 已裁切顯示；點選查看原圖與授權`;
-    img.style.objectFit = fixed && photo.fit === 'contain' ? 'contain' : 'cover';
-    img.loading = 'eager'; img.referrerPolicy = 'no-referrer'; img.dataset.photoKind = fixed ? 'fixed' : 'lookup'; img.src = src;
+    credit.title = `${photo.author} · ${photo.license} · ${photo.caption || '點選查看原圖、授權與縮圖說明'}`;
+    img.style.objectFit = photo.fit === 'contain' ? 'contain' : 'cover';
+    if (photo.caption) img.alt = `${card.querySelector('.spot-name').textContent}：${photo.caption}`;
+    img.onload = () => {
+      img.hidden = false; fallback.hidden = true; credit.hidden = false;
+      if (photo.note && !card.querySelector('.photo-note')) {
+        const note = document.createElement('span'); note.className = 'photo-note';
+        note.textContent = photo.note; note.title = photo.caption || photo.note;
+        note.style.cssText = 'position:absolute;top:8px;left:8px;right:8px;width:max-content;max-width:calc(100% - 16px);padding:3px 7px;background:rgba(255,253,249,.94);color:#493b32;font-size:11px;border-radius:5px;pointer-events:none';
+        card.querySelector('.thumb-wrap').appendChild(note);
+      }
+    };
+    img.onerror = fail; img.loading = 'eager'; img.decoding = 'async'; img.dataset.photoKind = 'fixed';
+    img.src = new URL(photo.src, document.baseURI).href;
   }
-  function pump() {
-    while (running < 3 && queue.length) {
-      const {card, spot} = queue.shift();
-      if (!card.isConnected || card.closest('.region-cards')?.hidden) { if (observer && card.isConnected) observer.observe(card); continue; }
-      running++;
-      getPhoto(spot).then(photo => show(card, photo)).finally(() => { running--; pump(); });
-    }
+  function attach(card) {
+    if (!card.isConnected || card.dataset.photoRequested === 'yes') return;
+    if (card.closest('.region-cards')?.hidden) { observer?.observe(card); return; }
+    card.dataset.photoRequested = 'yes';
+    const region = regionFor(card.dataset.id);
+    if (!region) { show(card, null); return; }
+    load(region).then(photos => show(card, photos[card.dataset.id]));
   }
-  function disconnect() { observer?.disconnect(); queue = []; }
-  function observe(cards, byId) {
+  function disconnect() { observer?.disconnect(); observer = null; fallbackObserver?.disconnect(); fallbackObserver = null; }
+  function observe(cards) {
     disconnect();
     if ('IntersectionObserver' in window) {
       observer = new IntersectionObserver(entries => {
-        for (const entry of entries) if (entry.isIntersecting) {
-          observer.unobserve(entry.target);
-          const spot = byId.get(entry.target.dataset.id);
-          if (spot) queue.push({card:entry.target, spot});
-        }
-        pump();
-      }, {rootMargin:'200px 0px'});
+        for (const entry of entries) if (entry.isIntersecting) { observer.unobserve(entry.target); attach(entry.target); }
+      }, {rootMargin:'240px 0px'});
       cards.forEach(card => observer.observe(card));
     } else {
-      cards.forEach(card => { if (!card.closest('.region-cards')?.hidden) queue.push({card,spot:byId.get(card.dataset.id)}); }); pump();
+      const refresh = () => cards.forEach(card => { if (!card.closest('.region-cards')?.hidden) attach(card); });
+      refresh(); fallbackObserver = new MutationObserver(refresh);
+      const root = document.getElementById('cards');
+      if (root) fallbackObserver.observe(root, {subtree:true,attributes:true,attributeFilter:['hidden']});
     }
   }
   return {observe, disconnect};
