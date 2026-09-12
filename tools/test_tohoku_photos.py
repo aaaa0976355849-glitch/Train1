@@ -76,7 +76,7 @@ try:
       check(label+' all 45 Hokkaido photos still load',page.locator('.thumb[data-photo-kind="fixed"]:visible').count()==45)
       check(label+' Hokkaido old tick retained',page.locator('[data-id="JP01-01"] .check').is_checked())
       check(label+' no external requests in completed regions',not outside,outside)
-      page.select_option('#region',label='東北');page.select_option('#pref',label='青森')
+      page.select_option('#region',label='東北');page.select_option('#pref',label='青森縣')
       page.locator('.region-head').scroll_into_view_if_needed();page.wait_for_timeout(600);page.screenshot(path=str(OUT/f'{label}.png'))
       check(label+' no horizontal page overflow',page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
       page.goto(URL+'photo-credits-tohoku.html');check(label+' 78 attribution sections',page.locator('article[id]').count()==78)
