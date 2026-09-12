@@ -1,21 +1,4 @@
 {
-  "JP01-15": {
-    "filename": "Kuttara_Volcano_Relief_Map,_SRTM-1.jpg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/62/Kuttara_Volcano_Relief_Map%2C_SRTM-1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/6/62/Kuttara_Volcano_Relief_Map%2C_SRTM-1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-    "source": "https://commons.wikimedia.org/wiki/File:Kuttara_Volcano_Relief_Map,_SRTM-1.jpg",
-    "author": "Batholith",
-    "license": "Public domain",
-    "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
-    "description": "Kuttara Volcano in Hokkaido, Japan.",
-    "sourceSha1": "9f740fd95367d86d86f08e38b13ea8b8b108cd80",
-    "changes": "縮小尺寸；網頁以 4:3 裁切顯示。裁切顯示版本沿用原圖授權。",
-    "matchedArticle": "ja:地獄谷 (登別市)",
-    "src": "images/hokkaido/JP01-15.jpg",
-    "name": "登別地獄谷＋溫泉街",
-    "sha256": "1e7e5ce730b1d89a33484d3a2bbb4dbda4e594613bd3bbda232694d1048f7eb5",
-    "bytes": 289754
-  },
   "JP01-23": {
     "filename": "MatsumaeJo.jpg",
     "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/54/MatsumaeJo.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
