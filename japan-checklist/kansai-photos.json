@@ -773,7 +773,8 @@
     "prefecture": "大阪府",
     "sha256": "22bffeda01a0f2c609fadd9003389b83bca4d0463d9cb6af66bd681cbcf4ae81",
     "bytes": 170289,
-    "selectionHash": "06a36b7f32890b3d92bdb03df71f9ba46717555d63bae24c3bf123d987147ebd"
+    "selectionHash": "06a36b7f32890b3d92bdb03df71f9ba46717555d63bae24c3bf123d987147ebd",
+    "fit": "contain"
   },
   "JP26-07": {
     "filename": "2018_Umeda_Sky_Building.jpg",
@@ -792,7 +793,8 @@
     "prefecture": "大阪府",
     "sha256": "ba39f5840fe7362e7f8e900c82bf7e00455d2b80bd1ec99f24f047a249225ebd",
     "bytes": 167880,
-    "selectionHash": "deaadebcb8234cc147e838d5b6c6bec4722de7d3efdf3818675ef5880d74adc1"
+    "selectionHash": "deaadebcb8234cc147e838d5b6c6bec4722de7d3efdf3818675ef5880d74adc1",
+    "fit": "contain"
   },
   "JP26-08": {
     "filename": "Abeno_Harukas_Osaka_Japan01-r.jpg",
@@ -811,7 +813,8 @@
     "prefecture": "大阪府",
     "sha256": "8be54bed74b74d13399a0f326c7de7130e98bd921159b7aae7db5bc58ddc8108",
     "bytes": 159857,
-    "selectionHash": "0bcd7277f1ecd10d3bfaaefb55abbfaf4aa5a3ccd5458804678757e23c4a844c"
+    "selectionHash": "0bcd7277f1ecd10d3bfaaefb55abbfaf4aa5a3ccd5458804678757e23c4a844c",
+    "fit": "contain"
   },
   "JP26-09": {
     "filename": "黒門市場_2024(1).jpg",
@@ -1907,7 +1910,8 @@
     "prefecture": "和歌山縣",
     "sha256": "da8782a22a00bdcfdd4f3974a7a454f220b00adbf16b9638a4b1bcfa6a170786",
     "bytes": 398645,
-    "selectionHash": "f6fef3b60e915acfbf0b9cbe80a625dfe726ebdf3aacda5c9542268c295f17bf"
+    "selectionHash": "f6fef3b60e915acfbf0b9cbe80a625dfe726ebdf3aacda5c9542268c295f17bf",
+    "fit": "contain"
   },
   "JP30-07": {
     "filename": "131221_Shirarahama_Beach_Shirahama_Wakayama_pref_Japan07s3bs.jpg",

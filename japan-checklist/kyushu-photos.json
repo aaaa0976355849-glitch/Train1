@@ -92,7 +92,8 @@
     "prefecture": "福岡縣",
     "sha256": "dc3fb11e56d0c3c58f1f5cc81d2f7becec0e7d439787e513ef15b75cb0f0a6e9",
     "bytes": 99254,
-    "selectionHash": "14ddbff97cbf14032c6e9f75fc47bab518d3b5e692794449d781adf39c8f89ba"
+    "selectionHash": "14ddbff97cbf14032c6e9f75fc47bab518d3b5e692794449d781adf39c8f89ba",
+    "fit": "contain"
   },
   "JP40-06": {
     "filename": "Kushidajinjafukuoka01.jpg",
@@ -1565,7 +1566,8 @@
     "prefecture": "鹿兒島縣",
     "sha256": "1f19ed93db8727b7090cc355fa561c1495eceadddbdb47bb42f2c87cc8561e2a",
     "bytes": 255536,
-    "selectionHash": "5611f5ad1e8c9fb76827705a55508c45101aad2b39f43b0191a261710f42d767"
+    "selectionHash": "5611f5ad1e8c9fb76827705a55508c45101aad2b39f43b0191a261710f42d767",
+    "fit": "contain"
   },
   "JP46-12": {
     "filename": "Mangrove forest in Amami Oshima.jpg",
