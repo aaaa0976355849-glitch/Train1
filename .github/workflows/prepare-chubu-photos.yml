@@ -1,0 +1,45 @@
+name: Prepare Hokuriku and Tokai fixed photographs
+on:
+  push:
+    branches: [work/hokuriku-tokai-static-photos]
+    paths:
+      - 'tools/chubu-selections.json'
+      - 'tools/collect_chubu.py'
+      - 'tools/photo_source.py'
+      - '.github/workflows/prepare-chubu-photos.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: chubu-photo-preparation
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect licensed candidates for visual review
+        run: python3 tools/collect_chubu.py
+      - name: Save candidates to review branch only
+        if: github.ref == 'refs/heads/work/hokuriku-tokai-static-photos'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add japan-checklist/images/hokuriku japan-checklist/images/tokai japan-checklist/hokuriku-photos.json japan-checklist/tokai-photos.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Store licensed Hokuriku and Tokai photograph candidates for review'
+            git push origin HEAD:work/hokuriku-tokai-static-photos
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chubu-photo-review
+          path: |
+            japan-checklist/images/hokuriku/
+            japan-checklist/images/tokai/
+            japan-checklist/hokuriku-photos.json
+            japan-checklist/tokai-photos.json
+            chubu-preparation-report.json
+            tools/chubu-selections.json
+          retention-days: 3
