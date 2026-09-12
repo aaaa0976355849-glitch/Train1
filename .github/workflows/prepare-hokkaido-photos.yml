@@ -1,0 +1,41 @@
+name: Prepare Hokkaido static photographs
+on:
+  push:
+    branches: [work/hokkaido-static-photos]
+    paths:
+      - 'tools/hokkaido-selections.json'
+      - 'tools/collect_hokkaido.py'
+      - '.github/workflows/prepare-hokkaido-photos.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: hokkaido-photo-preparation
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect licensed photo candidates
+        run: python3 tools/collect_hokkaido.py
+      - name: Save photos to review branch only
+        if: github.ref == 'refs/heads/work/hokkaido-static-photos'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add japan-checklist/images/hokkaido japan-checklist/hokkaido-photos.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Store licensed Hokkaido photo candidates for review'
+            git push origin HEAD:work/hokkaido-static-photos
+          fi
+      - name: Upload review bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hokkaido-photo-review
+          path: |
+            japan-checklist/
+            hokkaido-preparation-report.json
+          retention-days: 3
