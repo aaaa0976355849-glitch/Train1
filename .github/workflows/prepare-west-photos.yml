@@ -2,7 +2,7 @@ name: Prepare remaining five-region fixed photographs
 on:
   push:
     branches: [work/west-final-static-photos]
-    paths: ['tools/west/**', '.github/workflows/prepare-west-photos.yml']
+    paths: ['tools/west/overrides.json', 'tools/west/collect.py', '.github/workflows/prepare-west-photos.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -12,14 +12,19 @@ concurrency:
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - run: python3 -m pip install Pillow==12.0.0
-      - name: Collect licensed photograph candidates
+      - name: Collect reviewed fixed photograph choices
         run: python3 tools/west/collect.py
-      - name: Fetch scene alternatives for visual selection
-        run: python3 tools/west/alternatives.py
+      - name: Check completeness
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('west-preparation-report.json'))
+          assert r['downloaded']==328 and not r['errors'], r
+          PY
       - name: Save candidates to review branch only
         if: github.ref == 'refs/heads/work/west-final-static-photos'
         run: |
@@ -27,7 +32,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add japan-checklist/images/{kansai,chugoku,shikoku,kyushu,okinawa} japan-checklist/*-photos.json
           if ! git diff --cached --quiet; then
-            git commit -m 'Store remaining five-region licensed photo candidates for review'
+            git commit -m 'Store reviewed complete five-region fixed photo collection'
             git push origin HEAD:work/west-final-static-photos
           fi
       - uses: actions/upload-artifact@v4
@@ -42,5 +47,4 @@ jobs:
             japan-checklist/images/okinawa/
             japan-checklist/*-photos.json
             west-preparation-report.json
-            photo-alternatives/
           retention-days: 3
