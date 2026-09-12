@@ -1,60 +1,41 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#b42318" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#b42318">
   <title>日本 700 景點踩點圖鑑</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=20260912-3">
+  <script src="photos.js?v=20260912-3" defer></script>
+  <script src="app.js?v=20260912-3" defer></script>
 </head>
 <body>
-<header class="hero">
-  <div class="hero-inner">
-    <div>
-      <p class="eyebrow">JAPAN TRAVEL COLLECTION</p>
-      <h1>日本 700 景點踩點圖鑑</h1>
-      <p class="lead">47 都道府縣 · 700 個景點與體驗。把去過的地方勾起來，慢慢把日本填滿。</p>
-    </div>
-    <div class="stamp" aria-hidden="true">旅<br>圖</div>
-  </div>
-</header>
-
+<header class="hero"><p class="eyebrow">JAPAN TRAVEL COLLECTION</p><h1>日本景點踩點圖鑑</h1></header>
 <main>
-  <section class="summary-grid" id="summary"></section>
-
-  <section class="toolbar card">
-    <input id="search" type="search" placeholder="搜尋景點、都道府縣、類型…" />
-    <select id="region"><option value="">全部地區</option></select>
-    <select id="pref"><option value="">全部都道府縣</option></select>
-    <select id="status">
-      <option value="">全部狀態</option>
-      <option>待確認</option><option>想去</option><option>已去</option><option>想再去</option><option>暫不安排</option>
-    </select>
-    <button id="onlyVisited" class="ghost">只看已踩</button>
-  </section>
-
-  <section class="region-progress card">
-    <div class="section-title"><h2>地區完成度</h2><span id="visibleCount"></span></div>
+  <section class="region-progress card" aria-labelledby="progressTitle">
+    <div class="section-title"><h2 id="progressTitle">地區完成度</h2><span>一步一步，收集日本。</span></div>
     <div id="regionProgress" class="progress-list"></div>
   </section>
-
-  <section class="actions card">
-    <div>
-      <h2>我的紀錄</h2>
-      <p>勾選後會自動儲存在此瀏覽器。本機資料不會上傳到 GitHub。</p>
-    </div>
-    <div class="action-buttons">
-      <button id="exportBtn">匯出備份</button>
-      <label class="button-label">匯入備份<input id="importFile" type="file" accept="application/json" hidden></label>
-      <button id="resetBtn" class="danger ghost">清除本機紀錄</button>
+  <section class="toolbar card" aria-label="景點篩選">
+    <div class="toolbar-grid">
+      <input id="search" type="search" aria-label="搜尋景點" placeholder="搜尋景點、都道府縣…">
+      <select id="region" aria-label="篩選地區"><option value="">全部地區</option></select>
+      <select id="pref" aria-label="篩選都道府縣"><option value="">全部都道府縣</option></select>
+      <button id="onlyVisited" class="ghost" type="button" aria-pressed="false">只看已踩</button>
     </div>
   </section>
-
-  <section id="cards" class="cards"></section>
-  <div id="empty" class="empty" hidden>找不到符合條件的景點。</div>
+  <div class="list-tools"><span id="visibleCount" role="status">正在載入景點…</span><div><button id="expandAll" class="text-button" type="button">全部展開</button><button id="collapseAll" class="text-button" type="button">全部收合</button></div></div>
+  <p id="saveStatus" class="save-status" role="status" aria-live="polite">勾選自動儲存在此瀏覽器。</p>
+  <div id="cards" class="regions"></div>
+  <p id="empty" class="empty" hidden>找不到符合條件的景點。</p>
+  <details class="backup-panel card">
+    <summary>紀錄備份與圖片說明</summary>
+    <p>紀錄保存在這台裝置的這個瀏覽器，不會同步到 GitHub。換裝置或清除瀏覽資料前，請先匯出備份。</p>
+    <div class="action-buttons"><button id="exportBtn" type="button">匯出備份</button><label class="button-label" for="importFile">匯入備份</label><input id="importFile" type="file" accept=".json,application/json"></div>
+    <p>圖片依景點名稱自動查找 Wikipedia／Wikimedia 的自由授權圖片；點圖片上的署名可查看原圖與授權。照片有裁切顯示，尚未逐張人工核對。找不到或暫時無法載入時，會顯示替代圖卡，不會使用不相關照片。</p>
+  </details>
+  <noscript>請開啟瀏覽器的 JavaScript，才能載入景點與儲存勾選。</noscript>
 </main>
-
-<footer>資料清單來源：日本 700 景點踩點圖鑑 · 你的勾選紀錄只保存在目前瀏覽器。</footer>
-<script src="app.js"></script>
+<footer>700 景點 · 47 都道府縣 · 分區收藏版</footer>
 </body>
 </html>
