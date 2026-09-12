@@ -18,6 +18,8 @@ jobs:
       - run: python3 -m pip install Pillow==12.0.0
       - name: Collect licensed photograph candidates
         run: python3 tools/west/collect.py
+      - name: Fetch scene alternatives for visual selection
+        run: python3 tools/west/alternatives.py
       - name: Save candidates to review branch only
         if: github.ref == 'refs/heads/work/west-final-static-photos'
         run: |
@@ -40,4 +42,5 @@ jobs:
             japan-checklist/images/okinawa/
             japan-checklist/*-photos.json
             west-preparation-report.json
+            photo-alternatives/
           retention-days: 3
