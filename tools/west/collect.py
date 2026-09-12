@@ -11,8 +11,9 @@ def selections():
         if not line.strip():continue
         if line.startswith('['):pref=int(line[1:-1]);n=0;continue
         n+=1;out[f'JP{pref:02}-{n:02}']={k:v for k,v in zip(['ja','en'],line.split('|')) if v}
-    p=Path('tools/west/overrides.json')
-    if p.exists():out.update(json.loads(p.read_text()))
+    for name in ('overrides.json','final-overrides.json'):
+        p=Path('tools/west')/name
+        if p.exists():out.update(json.loads(p.read_text()))
     return out
 
 def main():
@@ -38,7 +39,7 @@ def main():
             dest=ROOT/'images'/slug/(id+'.jpg');im.convert('RGB').save(dest,'JPEG',quality=87,optimize=True)
             actual=dest.read_bytes()
             item.update({'src':dest.relative_to(ROOT).as_posix(),'name':spot['name'],'prefecture':spot['prefecture'],'sha256':hashlib.sha256(actual).hexdigest(),'bytes':len(actual),'selectionHash':sig,'changes':'縮小尺寸並轉存 JPEG；網頁預設以 4:3 裁切顯示，顯示版本沿用原圖授權。'})
-            for k in ['fit','caption']:
+            for k in ['fit','caption','note']:
                 if sel.get(k):item[k]=sel[k]
             manifests[slug][id]=item;print(id,spot['name'],item['filename'],item['license'],flush=True)
         except Exception as e:errors[id]={'name':spot['name'],'error':str(e)};print('MISSING',id,str(e),flush=True)
