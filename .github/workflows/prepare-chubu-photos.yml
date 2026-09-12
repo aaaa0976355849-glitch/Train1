@@ -24,6 +24,7 @@ jobs:
       - name: Collect licensed candidates for visual review
         run: python3 tools/collect_chubu.py
       - name: Review additional scene alternatives
+        if: github.event_name == 'workflow_dispatch'
         run: python3 tools/review_extra_photos.py
       - name: Save candidates to review branch only
         if: github.ref == 'refs/heads/work/hokuriku-tokai-static-photos'
