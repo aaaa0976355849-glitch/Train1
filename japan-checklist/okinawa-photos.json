@@ -397,5 +397,24 @@
     "sha256": "cf9b5f8d6d20d19cd543a446d464e074ce73b7f77ef73e0bde85c5536ee1f184",
     "bytes": 171353,
     "selectionHash": "639d23ae51123b588d7f3422f220582071569c8d86ace506940a854b9d2c3254"
+  },
+  "JP47-25": {
+    "filename": "Junglia Okinawa seen from Mount Yae 202512.jpg",
+    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Junglia_Okinawa_seen_from_Mount_Yae_202512.jpg/960px-Junglia_Okinawa_seen_from_Mount_Yae_202512.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/9/97/Junglia_Okinawa_seen_from_Mount_Yae_202512.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "source": "https://commons.wikimedia.org/wiki/File:Junglia_Okinawa_seen_from_Mount_Yae_202512.jpg",
+    "author": "Kugel~commonswiki",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "description": "Junglia Okinawa seen from Mount Yae, Motobu, Okinawa Prefecture, Japan",
+    "sourceSha1": "58af2f20313cc506ba1276c3b4ad206805f83f1f",
+    "changes": "縮小尺寸並轉存 JPEG；網頁預設以 4:3 裁切顯示，顯示版本沿用原圖授權。",
+    "src": "images/okinawa/JP47-25.jpg",
+    "name": "JUNGLIA OKINAWA",
+    "prefecture": "沖繩縣",
+    "sha256": "b683efa9924327a9287aac73c739da989648f696e94fde4e36079c4a833b0b59",
+    "bytes": 183963,
+    "selectionHash": "51332871798c72cc3e501da3d5e5a60d34ae3f2c0e9329898fed1231fc2bb4d8",
+    "caption": "從八重岳拍攝的 JUNGLIA OKINAWA 園區遠景，拍攝於 2025 年 12 月；不是園內遊樂設施近照。"
   }
 }
