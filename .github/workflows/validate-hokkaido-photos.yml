@@ -1,0 +1,53 @@
+name: Validate Hokkaido fixed photographs
+on:
+  push:
+    branches: [work/hokkaido-static-photos]
+    paths:
+      - 'japan-checklist/photos.js'
+      - 'japan-checklist/index.html'
+      - 'tools/build_hokkaido_credits.py'
+      - 'tools/test_hokkaido_photos.py'
+      - '.github/workflows/validate-hokkaido-photos.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: hokkaido-photo-validation
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build fixed attribution page
+        run: python3 tools/build_hokkaido_credits.py japan-checklist
+      - name: Install test dependencies
+        run: |
+          python3 -m pip install playwright==1.57.0 Pillow==12.0.0
+          if ! command -v google-chrome && ! command -v chromium; then
+            python3 -m playwright install chromium
+          fi
+      - name: Syntax and integration checks
+        run: |
+          node --check japan-checklist/photos.js
+          node --check japan-checklist/app.js
+          python3 tools/test_hokkaido_photos.py japan-checklist
+      - name: Commit attribution page to review branch
+        if: github.ref == 'refs/heads/work/hokkaido-static-photos'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add japan-checklist/photo-credits.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add verified static attribution page for 45 Hokkaido photographs'
+            git push origin HEAD:work/hokkaido-static-photos
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hokkaido-final-review
+          path: |
+            japan-checklist/
+            hokkaido-tests/
+          retention-days: 3

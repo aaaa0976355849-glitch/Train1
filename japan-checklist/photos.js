@@ -2,6 +2,23 @@
 // Only request photos near the viewport; never fan out 700 network requests.
 window.JapanPhotos = (() => {
   const CACHE_KEY = 'japan700-photo-cache-v3';
+  // Fixed, locally hosted photographs: no Wikimedia search/API calls for Hokkaido.
+  const isHokkaido = id => /^JP01-\d{2}$/.test(id);
+  const localPhoto = (id, src) => typeof src === 'string' &&
+    new RegExp('^images/hokkaido/' + id + '\\.(jpg|png|webp)$').test(src);
+  const fixedPhotos = fetch('hokkaido-photos.json?v=hokkaido-static-1', {credentials:'same-origin'})
+    .then(r => { if (!r.ok) throw new Error('Fixed photo catalogue unavailable'); return r.json(); })
+    .then(data => {
+      if (!data || typeof data !== 'object' || Array.isArray(data)) return {};
+      const valid = {};
+      for (const [id, photo] of Object.entries(data)) {
+        if (isHokkaido(id) && photo && localPhoto(id, photo.src) &&
+            safeURL(photo.source, 'commons.wikimedia.org') && photo.author && photo.license) {
+          valid[id] = {...photo, fixedId:id};
+        }
+      }
+      return valid;
+    }).catch(() => ({}));
   const aliases = {'大通公園＋札幌電視塔':'大通公園','北海道廳舊本廳舍':'北海道庁旧本庁舎','白色戀人公園':'白い恋人パーク','小樽運河':'小樽運河','函館山':'函館山','美瑛青池':'青い池','富田農場':'ファーム富田','登別地獄谷':'地獄谷 (登別市)','東京晴空塔':'東京スカイツリー','東京迪士尼樂園':'東京ディズニーランド','東京迪士尼海洋':'東京ディズニーシー','伏見稻荷大社':'伏見稲荷大社','沖繩美麗海水族館':'沖縄美ら海水族館'};
   let cache = {}, observer = null, running = 0, queue = [];
   const inFlight = new Map();
@@ -28,7 +45,6 @@ window.JapanPhotos = (() => {
     const meta = info.extmetadata || {};
     const license = text(meta.LicenseShortName?.value);
     const author = text(meta.Attribution?.value || meta.Artist?.value) || 'Wikimedia Commons';
-    // Do not display unknown or non-free image licenses.
     if (!src || !source || !/^(CC|Public domain|PDM|GFDL)/i.test(license)) return null;
     return {src, source, author, license};
   }
@@ -50,6 +66,8 @@ window.JapanPhotos = (() => {
     return null;
   }
   function getPhoto(spot) {
+    // A missing fixed file must not silently fall back to an unrelated search result.
+    if (isHokkaido(spot.id)) return fixedPhotos.then(photos => photos[spot.id] || null);
     const old = cache[spot.id];
     if (old && Date.now() - old.at < (old.photo ? 7*86400000 : 600000)) return Promise.resolve(old.photo);
     if (inFlight.has(spot.id)) return inFlight.get(spot.id);
@@ -63,17 +81,18 @@ window.JapanPhotos = (() => {
   function show(card, photo) {
     if (!card.isConnected) return;
     const fallback = card.querySelector('.thumb-fallback'), img = card.querySelector('.thumb'), credit = card.querySelector('.photo-credit');
-    const src = photo && safeURL(photo.src, 'upload.wikimedia.org');
+    const fixed = photo?.fixedId === card.dataset.id && localPhoto(card.dataset.id, photo.src);
+    const src = fixed ? new URL(photo.src, document.baseURI).href :
+      photo && safeURL(photo.src, 'upload.wikimedia.org');
     const source = photo && safeURL(photo.source, 'commons.wikimedia.org');
     const fail = () => { img.hidden = true; credit.hidden = true; fallback.hidden = false; fallback.textContent = '尚無照片／暫時無法載入'; fallback.setAttribute('aria-label', `${card.querySelector('.spot-name').textContent}：尚無照片`); };
     if (!src || !source) { fail(); return; }
     img.onload = () => { img.hidden = false; fallback.hidden = true; credit.hidden = false; };
     img.onerror = fail;
-    credit.href = source;
+    credit.href = fixed ? `photo-credits.html#${photo.fixedId}` : source;
     credit.textContent = `${photo.author} · ${photo.license}`;
     credit.title = `${photo.author} · ${photo.license} · 已裁切顯示；點選查看原圖與授權`;
-    // IntersectionObserver already controls laziness; a hidden lazy image never loads.
-    img.loading = 'eager'; img.referrerPolicy = 'no-referrer'; img.src = src;
+    img.loading = 'eager'; img.referrerPolicy = 'no-referrer'; img.dataset.photoKind = fixed ? 'fixed' : 'lookup'; img.src = src;
   }
   function pump() {
     while (running < 3 && queue.length) {
@@ -97,7 +116,6 @@ window.JapanPhotos = (() => {
       }, {rootMargin:'200px 0px'});
       cards.forEach(card => observer.observe(card));
     } else {
-      // Older browsers still get a bounded queue; collapsed sections stay unloaded.
       cards.forEach(card => { if (!card.closest('.region-cards')?.hidden) queue.push({card,spot:byId.get(card.dataset.id)}); }); pump();
     }
   }
