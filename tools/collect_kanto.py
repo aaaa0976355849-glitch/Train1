@@ -24,7 +24,7 @@ OVERRIDES={
 'JP11-06':{'file':'Chichibu Hitsujiyama Park Phlox Hill 1.JPG'},
 'JP11-07':{'file':'鉄道博物館 Railway museum 16.jpg'},
 'JP12-01':{'file':'2025 Hitachi Seaside Park.jpg'},
-'JP12-04':{'file':'Ushiku daibutsu 20050520 (8675289214).jpg','fit':'contain'},
+'JP12-04':{'file':'Ushiku Daibutsu - Great Buddha in Japan.jpg','fit':'contain'},
 'JP12-09':{'file':'Ryujin big suspension bridge.jpg'},
 'JP14-01':{'file':'Kusatsu Yubatake 04.JPG'},
 'JP14-04':{'file':'Gunma hot springs 2017.jpg','caption':'寶川溫泉汪泉閣露天溫泉景色。'},
