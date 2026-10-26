@@ -1,0 +1,50 @@
+name: Validate stable checklist scrolling
+on:
+  push:
+    branches: [work/fix-checklist-scroll]
+    paths: ['tools/scroll/**', '.github/workflows/validate-scroll-fix.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: checklist-scroll-validation
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser tests
+        run: |
+          python3 -m pip install playwright==1.57.0
+          python3 -m playwright install --with-deps webkit
+      - name: Apply scoped interaction fix
+        run: |
+          python3 tools/scroll/patch.py
+          node --check japan-checklist/app.js
+      - name: Chrome desktop and touch regression
+        run: ENGINE=chromium python3 tools/scroll/test_scroll.py
+      - name: WebKit desktop and touch regression
+        run: ENGINE=webkit python3 tools/scroll/test_scroll.py
+      - name: Commit verified website on review branch only
+        if: github.ref == 'refs/heads/work/fix-checklist-scroll'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add japan-checklist/app.js japan-checklist/style.css japan-checklist/index.html japan-checklist/README.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'Keep checkbox interactions and viewport stable without immediate card movement'
+            git push origin HEAD:work/fix-checklist-scroll
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checklist-scroll-validation
+          path: |
+            scroll-tests/
+            japan-checklist/app.js
+            japan-checklist/style.css
+            japan-checklist/index.html
+            japan-checklist/README.md
+          retention-days: 7
