@@ -125,20 +125,34 @@ function updateSectionFold(section, closed) {
 function updateChecked(input) {
   const el = input.closest('.spot'), id = el.dataset.id, spot = byId.get(id);
   const done = input.checked;
-  // Explicit false always overrides an earlier "想再去" or "已去" state.
+  // Keep the clicked card and native focus in place. Reparenting a focused
+  // checkbox during its change event can make mobile browsers follow it.
+  // Checked-first sorting still runs on the next deliberate filter or reload.
   state[id] = {...state[id], checked: done, visited: done, status: done ? '已去' : '待確認'};
   saveState();
-  renderProgress();
-  if (onlyVisited && !done) { renderCards(); return; }
-  const section = el.closest('.region-section'), grid = section.querySelector('.region-cards');
   el.classList.toggle('visited', done);
+  const section = el.closest('.region-section'), grid = section.querySelector('.region-cards');
   section.querySelector('.region-count').textContent = regionLabel(spot.region);
-  // Move existing nodes rather than recreating images or losing keyboard focus.
-  [...grid.children].sort((a, b) => {
-    const x = byId.get(a.dataset.id), y = byId.get(b.dataset.id);
-    return Number(isDone(y)) - Number(isDone(x)) || x.order - y.order;
-  }).forEach(node => grid.appendChild(node));
-  input.focus({preventScroll: true});
+  renderProgress();
+  if (onlyVisited && !done) {
+    // Remove only this filtered-out card, not every section and loaded photo.
+    const left = window.scrollX, top = window.scrollY;
+    const hadFocus = document.activeElement === input;
+    const next = el.nextElementSibling?.querySelector('.check') ||
+      el.previousElementSibling?.querySelector('.check');
+    el.remove();
+    if (!grid.children.length) section.remove();
+    const count = $('#cards').querySelectorAll('.spot').length;
+    $('#visibleCount').textContent = `目前顯示 ${count} 個景點`;
+    $('#empty').hidden = count !== 0;
+    if (hadFocus) {
+      const target = next?.isConnected ? next :
+        $('#cards').querySelector('.region-head') || $('#onlyVisited');
+      target.focus({preventScroll: true});
+    }
+    // Keep the viewport unless the remaining page is naturally shorter.
+    window.scrollTo({left, top, behavior: 'instant'});
+  }
 }
 function updatePrefs() {
   const selected = $('#pref').value, region = $('#region').value;
